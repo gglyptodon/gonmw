@@ -1,6 +1,9 @@
 package main
 
-import ("fmt")
+import (
+"fmt"
+"strconv"
+)
 
 type SubstitutionMatrix struct{
 	name string
@@ -109,14 +112,64 @@ func (sm *SubstitutionMatrix) setMap(mapName string){
 	}else{}
 }
 
+
+type Sequence struct{
+	header string
+	sequence string
+}
+
+func toFasta(seq Sequence) string{
+	var res string
+	res = seq.header+"\n"+seq.sequence
+	return res
+}
+
+type Score struct {
+	seqA Sequence
+	seqB Sequence
+	sm SubstitutionMatrix
+	res int
+}
+
+func prettyPrint(score Score) string{
+	var res string
+	res = score.seqA.header+"\t"+score.seqB.header+strconv.Itoa(score.res)+"\n"
+	return res
+}
+
 func main(){
 
 	eblosum62 := SubstitutionMatrix{name:"EBLOSUM62", data: map[string]int{"te_st":2}}
 	fmt.Println(eblosum62.GetName())
 	eblosum62.setMap("EBLOSUM62")
 	fmt.Println(eblosum62.GetVal("Z","A"))
-
+	var a Sequence
+	var b Sequence
+	var s Score
+	a = Sequence{"header1", "ATG"}
+	b = Sequence{"header2", "GGG"}
+	s = Score{a,b,eblosum62,0}
+	fmt.Println(prettyPrint(s))
 
 }
+func nmw(seqA Sequence, seqB Sequence, score Score ){
+	//twoD array to iterate through
+	m := len(seqA.sequence)
+	n := len(seqB.sequence)
+	var mat = make([][]int, m)
+	var s Score
+	print(s.seqA.header)
 
+	for i := 0; i < m; i++ {
+		mat[i] = make([]int, n)
+	}
+	for i,v := range seqA.sequence{
+		for j,w := range seqB.sequence{
+			print(i,v,j,w)
+		}
+	}
+	for i,j := range mat{
+		fmt.Println(i,j)
+	}
+}
 
