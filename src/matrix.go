@@ -250,6 +250,8 @@ func main(){
 	//b = Sequence{"header2", "GGGGGA"}
 	//a = Sequence{">ENSP00000477271","MADTIFGSGNDQWVCPNDRQLALRAKLQTGWSVHTYQTEKQRRKQHLSPAEVEAILQVIQRAERLDVLEQQRIGRLVERLETMRRNVMGNGLSQCLLCGEVLGFLGSSSVFCKDCRKVWKRSGAWFYKGLPKYILPLKTPGRADDPHF"}
 	//b = Sequence{">ENSP00000477194","MADTIFGSGNDQWVCPNDRQLALRAKLQTGWSVHTYQTEKQRRKQHLSPAEVEAILQVIQRAERLDVLEQQRIGRLVERLETMRRNVMGNGLSQCLLCGEVLGFLGSSSVFCKDCRKKVCTKCGIEASPGQKRPLWLCKICSEQREVWKRSG"}
+	var scores []Score
+
 	var seen map[string]bool
 	seen = make(map[string]bool)
 	for _,a := range allA{
@@ -259,6 +261,7 @@ func main(){
 			if ! seen[tmppair]== true && ! seen[tmppairr] == true{
 			newScore := nmw(a,b,eblosum62)
 			fmt.Println(prettyPrint(newScore))
+			scores = append(scores, newScore)
 			seen[tmppair]=true
 			}else{}
 		}
