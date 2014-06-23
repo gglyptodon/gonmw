@@ -6,6 +6,7 @@ import (
 "strings"
  "os"
 "io/ioutil"
+"runtime"
 )
 /*
  SUBSTITUTION MATRIX
@@ -263,6 +264,8 @@ func main(){
 			tmppairr := b.header+a.header
 			if ! seen[tmppair]== true && ! seen[tmppairr] == true{
 				go doSth(a,b,eblosum62,channel)
+                runtime.Gosched()
+                runtime.GC()
 			//newScore := nmw(a,b,eblosum62)
 			//fmt.Println(prettyPrint(newScore))
 			//scores = append(scores, newScore)
