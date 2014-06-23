@@ -264,13 +264,14 @@ func main(){
 			tmppairr := b.header+a.header
 			if ! seen[tmppair]== true && ! seen[tmppairr] == true{
 				go doSth(a,b,eblosum62,channel)
-                runtime.Gosched()
-                runtime.GC()
 			//newScore := nmw(a,b,eblosum62)
 			//fmt.Println(prettyPrint(newScore))
 			//scores = append(scores, newScore)
 			seen[tmppair]=true
-			}else{}
+			}else{
+                runtime.Gosched()
+                //runtime.GC()
+                }
 		}
 	}
 	for i := 0; i < 4; i++ {
