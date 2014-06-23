@@ -4,6 +4,8 @@ import (
 "fmt"
 "strconv"
 "strings"
+ "os"
+"io/ioutil"
 )
 /*
  SUBSTITUTION MATRIX
@@ -220,7 +222,18 @@ func maxOfThree(x int, y int, z int)int{
 /*
 MAIN
 */
+
+
 func main(){
+	var fastaFileA string
+	var fastaFileB string
+	fastaFileA = os.Args[1]
+	fastaFileB = os.Args[2]
+	var fr FastaReader
+	fr = FastaReader{file:fastaFileA}
+	fr.getSequences()
+	print(fastaFileB)
+	print(fastaFileA)
 
 	eblosum62 := SubstitutionMatrix{name:"EBLOSUM62", data: map[string]int{"_":-1}}
 	//fmt.Println(eblosum62.GetName())
@@ -240,5 +253,38 @@ func main(){
 	s = nmw(a,b,eblosum62)
 
 	fmt.Println(prettyPrint(s))
+
+}
+func check(e error) {
+    if e != nil {
+        panic(e)
+    }
+}
+
+type FastaReader struct{
+	file string
+}
+func(fr FastaReader) getSequences()[]Sequence{
+	var res []Sequence
+	print(res)
+	//whole file in mem
+	dat, err := ioutil.ReadFile(fr.file)
+    check(err)
+	//split at ">"
+	var seqarr []string
+	seqarr = strings.Split(string(dat),">") // now everything should start with a header
+	for k,v := range(seqarr){
+		fmt.Println(k,v)
+		var tmp []string
+		tmp = strings.Split(v,"\n")
+		res = append(res, Sequence{header:tmp[0], sequence:strings.Join(tmp[1:],"")})
+
+	}
+    //fmt.Print(string(dat))
+	for i,v:= range res{
+		fmt.Println(i,v)
+
+	}
+	return res
 
 }
