@@ -1,0 +1,4 @@
+python nmw.py n4 real0m18.400s,user0m51.479s,sys0m0.428s
+python nmw.py n1 real0m47.790s,user0m47.343s,sys0m0.084s
+go matrix n1 real0m3.532s, user0m3.460s, sys0m0.044s
+needleall n1 real0m1.778s, user0m0.752s, sys0m0.032s
