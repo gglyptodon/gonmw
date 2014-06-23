@@ -144,7 +144,7 @@ func (s *Score ) setScore(newVal int){
 }
 func prettyPrint(score Score) string{
 	var res string
-	print(score.res)
+	//print(score.res)
 	res = score.seqA.header+"\t"+score.seqB.header+"\t"+strconv.Itoa(score.res)+"\n"
 	return res
 }
@@ -229,30 +229,46 @@ func main(){
 	var fastaFileB string
 	fastaFileA = os.Args[1]
 	fastaFileB = os.Args[2]
-	var fr FastaReader
-	fr = FastaReader{file:fastaFileA}
-	fr.getSequences()
-	print(fastaFileB)
-	print(fastaFileA)
+
+	var allB []Sequence
+	var allA []Sequence
+
+	allA = FastaReader{file:fastaFileA}.getSequences()
+	allB = FastaReader{file:fastaFileB}.getSequences()
+
+	//print(fastaFileB, allB)
+	//print(fastaFileA,allA)
 
 	eblosum62 := SubstitutionMatrix{name:"EBLOSUM62", data: map[string]int{"_":-1}}
 	//fmt.Println(eblosum62.GetName())
 	eblosum62.setMap("EBLOSUM62")
 	//fmt.Println(eblosum62.GetVal("Z","A"))
-	var a Sequence
-	var b Sequence
-	var s Score
+	//var a Sequence
+	//var b Sequence
+	//var s Score
 	//a = Sequence{"header1", "ATGGGG"}
 	//b = Sequence{"header2", "GGGGGA"}
-
-	a = Sequence{">ENSP00000477271","MADTIFGSGNDQWVCPNDRQLALRAKLQTGWSVHTYQTEKQRRKQHLSPAEVEAILQVIQRAERLDVLEQQRIGRLVERLETMRRNVMGNGLSQCLLCGEVLGFLGSSSVFCKDCRKVWKRSGAWFYKGLPKYILPLKTPGRADDPHF"}
-	b = Sequence{">ENSP00000477194","MADTIFGSGNDQWVCPNDRQLALRAKLQTGWSVHTYQTEKQRRKQHLSPAEVEAILQVIQRAERLDVLEQQRIGRLVERLETMRRNVMGNGLSQCLLCGEVLGFLGSSSVFCKDCRKKVCTKCGIEASPGQKRPLWLCKICSEQREVWKRSG"}
+	//a = Sequence{">ENSP00000477271","MADTIFGSGNDQWVCPNDRQLALRAKLQTGWSVHTYQTEKQRRKQHLSPAEVEAILQVIQRAERLDVLEQQRIGRLVERLETMRRNVMGNGLSQCLLCGEVLGFLGSSSVFCKDCRKVWKRSGAWFYKGLPKYILPLKTPGRADDPHF"}
+	//b = Sequence{">ENSP00000477194","MADTIFGSGNDQWVCPNDRQLALRAKLQTGWSVHTYQTEKQRRKQHLSPAEVEAILQVIQRAERLDVLEQQRIGRLVERLETMRRNVMGNGLSQCLLCGEVLGFLGSSSVFCKDCRKKVCTKCGIEASPGQKRPLWLCKICSEQREVWKRSG"}
+	var seen map[string]bool
+	seen = make(map[string]bool)
+	for _,a := range allA{
+		for _,b:=range allB{
+			tmppair := a.header+b.header
+			tmppairr := b.header+a.header
+			if ! seen[tmppair]== true && ! seen[tmppairr] == true{
+			newScore := nmw(a,b,eblosum62)
+			fmt.Println(prettyPrint(newScore))
+			seen[tmppair]=true
+			}else{}
+		}
+	}
 
 	//fmt.Println(prettyPrint(s))
-	nmw(a,b,eblosum62)
-	s = nmw(a,b,eblosum62)
+	//nmw(a,b,eblosum62)
+	//s = nmw(a,b,eblosum62)
 
-	fmt.Println(prettyPrint(s))
+	//fmt.Println(prettyPrint(s))
 
 }
 func check(e error) {
@@ -266,25 +282,27 @@ type FastaReader struct{
 }
 func(fr FastaReader) getSequences()[]Sequence{
 	var res []Sequence
-	print(res)
+	//print(res)
 	//whole file in mem
 	dat, err := ioutil.ReadFile(fr.file)
     check(err)
 	//split at ">"
 	var seqarr []string
 	seqarr = strings.Split(string(dat),">") // now everything should start with a header
-	for k,v := range(seqarr){
-		fmt.Println(k,v)
+	for _,v := range(seqarr){
+		//fmt.Println(k,v)
 		var tmp []string
 		tmp = strings.Split(v,"\n")
-		res = append(res, Sequence{header:tmp[0], sequence:strings.Join(tmp[1:],"")})
+		shortHeader := strings.Split(tmp[0]," ")[0]
+		//res = append(res, Sequence{header:tmp[0], sequence:strings.Join(tmp[1:],"")})
+		res = append(res, Sequence{header:shortHeader, sequence:strings.Join(tmp[1:],"")})
 
 	}
     //fmt.Print(string(dat))
-	for i,v:= range res{
-		fmt.Println(i,v)
-
-	}
+	//for i,v:= range res{
+	//	fmt.Println(i,v)
+//
+//	}
 	return res
 
 }
