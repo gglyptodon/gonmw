@@ -250,23 +250,29 @@ func main(){
 	//b = Sequence{"header2", "GGGGGA"}
 	//a = Sequence{">ENSP00000477271","MADTIFGSGNDQWVCPNDRQLALRAKLQTGWSVHTYQTEKQRRKQHLSPAEVEAILQVIQRAERLDVLEQQRIGRLVERLETMRRNVMGNGLSQCLLCGEVLGFLGSSSVFCKDCRKVWKRSGAWFYKGLPKYILPLKTPGRADDPHF"}
 	//b = Sequence{">ENSP00000477194","MADTIFGSGNDQWVCPNDRQLALRAKLQTGWSVHTYQTEKQRRKQHLSPAEVEAILQVIQRAERLDVLEQQRIGRLVERLETMRRNVMGNGLSQCLLCGEVLGFLGSSSVFCKDCRKKVCTKCGIEASPGQKRPLWLCKICSEQREVWKRSG"}
-	var scores []Score
+
+	//var scores []Score
 
 	var seen map[string]bool
 	seen = make(map[string]bool)
+
+	channel  := make(chan int, 4)
 	for _,a := range allA{
 		for _,b:=range allB{
 			tmppair := a.header+b.header
 			tmppairr := b.header+a.header
 			if ! seen[tmppair]== true && ! seen[tmppairr] == true{
-			newScore := nmw(a,b,eblosum62)
-			fmt.Println(prettyPrint(newScore))
-			scores = append(scores, newScore)
+				go doSth(a,b,eblosum62,channel)
+			//newScore := nmw(a,b,eblosum62)
+			//fmt.Println(prettyPrint(newScore))
+			//scores = append(scores, newScore)
 			seen[tmppair]=true
 			}else{}
 		}
 	}
-
+	for i := 0; i < 4; i++ {
+        <-channel    // wait for one task to complete
+    }
 	//fmt.Println(prettyPrint(s))
 	//nmw(a,b,eblosum62)
 	//s = nmw(a,b,eblosum62)
@@ -309,3 +315,17 @@ func(fr FastaReader) getSequences()[]Sequence{
 	return res
 
 }
+const numCPU = 3
+//var semaphore = make(chan int, numCPU)
+func doSth(a Sequence, b Sequence, sm SubstitutionMatrix, channel chan int){
+	//print("test")
+	//semaphore <- 1
+	//nmw(a,b,sm)
+	newScore :=	nmw(a,b,sm)
+	//fmt.Print(newScore)
+//	channel <- 1
+	fmt.Println(prettyPrint(newScore))
+	channel <- 1
+	//<-semaphore
+}
+
