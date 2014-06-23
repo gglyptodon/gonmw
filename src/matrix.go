@@ -3,8 +3,11 @@ package main
 import (
 "fmt"
 "strconv"
+"strings"
 )
-
+/*
+ SUBSTITUTION MATRIX
+*/
 type SubstitutionMatrix struct{
 	name string
 	data map[string]int
@@ -112,64 +115,130 @@ func (sm *SubstitutionMatrix) setMap(mapName string){
 	}else{}
 }
 
-
+/*
+SEQUENCE
+*/
 type Sequence struct{
 	header string
 	sequence string
 }
-
 func toFasta(seq Sequence) string{
 	var res string
 	res = seq.header+"\n"+seq.sequence
 	return res
 }
 
+/*
+SCORE
+*/
 type Score struct {
 	seqA Sequence
 	seqB Sequence
 	sm SubstitutionMatrix
 	res int
 }
-
+func (s *Score ) setScore(newVal int){
+	s.res=newVal
+}
 func prettyPrint(score Score) string{
 	var res string
-	res = score.seqA.header+"\t"+score.seqB.header+strconv.Itoa(score.res)+"\n"
+	print(score.res)
+	res = score.seqA.header+"\t"+score.seqB.header+"\t"+strconv.Itoa(score.res)+"\n"
 	return res
 }
-
-func main(){
-
-	eblosum62 := SubstitutionMatrix{name:"EBLOSUM62", data: map[string]int{"te_st":2}}
-	fmt.Println(eblosum62.GetName())
-	eblosum62.setMap("EBLOSUM62")
-	fmt.Println(eblosum62.GetVal("Z","A"))
-	var a Sequence
-	var b Sequence
-	var s Score
-	a = Sequence{"header1", "ATG"}
-	b = Sequence{"header2", "GGG"}
-	s = Score{a,b,eblosum62,0}
-	fmt.Println(prettyPrint(s))
-
-}
-func nmw(seqA Sequence, seqB Sequence, score Score ){
-	//twoD array to iterate through
-	m := len(seqA.sequence)
-	n := len(seqB.sequence)
+/*
+NMW
+*/
+func nmw(seqA Sequence, seqB Sequence, substMat SubstitutionMatrix )Score{
+	//twoD array to iterate over
+	m := len(seqA.sequence)+1
+	n := len(seqB.sequence)+1
 	var mat = make([][]int, m)
 	var s Score
-	print(s.seqA.header)
+	s = Score{seqA:seqA, seqB:seqB, sm: substMat, res:0}
+	//print(s.seqA.header)
 
 	for i := 0; i < m; i++ {
 		mat[i] = make([]int, n)
 	}
-	for i,v := range seqA.sequence{
-		for j,w := range seqB.sequence{
-			print(i,v,j,w)
+	// 2d matrix done
+
+	var seqA_arr []string
+	seqA_arr = strings.Split(seqA.sequence,"")
+	var seqB_arr []string
+	seqB_arr = strings.Split(seqB.sequence,"")
+	var gapPenalty int
+	gapPenalty = -10
+
+	for i:=1; i<len(seqA_arr);i++{
+		v := seqA_arr[i-1]
+		for  j:= 1;j < len(seqB_arr);j++ {
+			w := seqB_arr[j-1]
+			mat[i][j] = maxOfThree(mat[i-1][j-1]+s.sm.GetVal(v,w),mat[i-1][j]+gapPenalty,mat[i][j-1]+gapPenalty)
+
+			//print(i,v,j,w)
+			//	fmt.Println(mat[i][j])
+			//	fmt.Printf("%s %s",v,w)
+			//	fmt.Println(score.sm.GetVal(v,w))
+			//	mat[i][j] = score.sm.GetVal(v,w)
+
 		}
 	}
-	for i,j := range mat{
-		fmt.Println(i,j)
+	//for i,j := range mat{
+		//fmt.Println(i,j)
+	//}
+
+	//fmt.Println(getMax(mat))
+	s.setScore(getMax(mat))
+	//setScore(*s,getMax(mat))
+	return s
+}
+//TODO adjust so that one sequence has to have ended
+func getMax(twod [][]int) int{
+	var max int
+	max = -1
+
+	for _,v :=range(twod){
+		for _,w :=range v{
+			if w > max{
+				max = w
+			}else{}
+		}
 	}
+	return max
 }
 
+func maxOfThree(x int, y int, z int)int{
+	if x >= y && x >= z{
+		return x
+	}else if y >= x && y >= z{
+		return(y)
+	}
+	return z
+}
+
+/*
+MAIN
+*/
+func main(){
+
+	eblosum62 := SubstitutionMatrix{name:"EBLOSUM62", data: map[string]int{"_":-1}}
+	//fmt.Println(eblosum62.GetName())
+	eblosum62.setMap("EBLOSUM62")
+	//fmt.Println(eblosum62.GetVal("Z","A"))
+	var a Sequence
+	var b Sequence
+	var s Score
+	//a = Sequence{"header1", "ATGGGG"}
+	//b = Sequence{"header2", "GGGGGA"}
+
+	a = Sequence{">ENSP00000477271","MADTIFGSGNDQWVCPNDRQLALRAKLQTGWSVHTYQTEKQRRKQHLSPAEVEAILQVIQRAERLDVLEQQRIGRLVERLETMRRNVMGNGLSQCLLCGEVLGFLGSSSVFCKDCRKVWKRSGAWFYKGLPKYILPLKTPGRADDPHF"}
+	b = Sequence{">ENSP00000477194","MADTIFGSGNDQWVCPNDRQLALRAKLQTGWSVHTYQTEKQRRKQHLSPAEVEAILQVIQRAERLDVLEQQRIGRLVERLETMRRNVMGNGLSQCLLCGEVLGFLGSSSVFCKDCRKKVCTKCGIEASPGQKRPLWLCKICSEQREVWKRSG"}
+
+	//fmt.Println(prettyPrint(s))
+	nmw(a,b,eblosum62)
+	s = nmw(a,b,eblosum62)
+
+	fmt.Println(prettyPrint(s))
+
+}
