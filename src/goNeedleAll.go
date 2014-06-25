@@ -132,15 +132,15 @@ type Score struct {
 	seqA Sequence
 	seqB Sequence
 	sm SubstitutionMatrix
-	res int
+	res float64
 }
-func (s *Score ) setScore(newVal int){
+func (s *Score ) setScore(newVal float64){
 	s.res=newVal
 }
 func prettyPrint(score Score) string{
 	var res string
 	//print(score.res)
-	res = score.seqA.header+"\t"+score.seqB.header+"\t"+strconv.Itoa(score.res)+"\n"
+	res = score.seqA.header+"\t"+score.seqB.header+"\t"+strconv.FormatFloat(score.res,'f', 2, 32)+"\n"
 	return res
 }
 /*
@@ -153,9 +153,9 @@ func nmw(seqA Sequence, seqB Sequence, substMat SubstitutionMatrix )Score{
 	var s Score
 	s = Score{seqA:seqA, seqB:seqB, sm: substMat, res:0}
 	//2d Scoring Matrix
-	var mat = make([][]int, m)
+	var mat = make([][]float64, m)
 	for i := 0; i < m; i++ {
-		mat[i] = make([]int, n)
+		mat[i] = make([]float64, n)
 	}
 	// Scoring matrix done
 
@@ -174,18 +174,18 @@ func nmw(seqA Sequence, seqB Sequence, substMat SubstitutionMatrix )Score{
 	var seqB_arr []string
 	seqB_arr = strings.Split(seqB.sequence,"")
 
-	var gapOpenPenalty int
-	gapOpenPenalty = -100
+	var gapOpenPenalty float64
+	gapOpenPenalty = -10
 
-	var gapExtendPenalty int
-	gapExtendPenalty = -5
+	var gapExtendPenalty float64
+	gapExtendPenalty = -0.5
 	//print(gapExtendPenalty)
 	//leave first row at 0
 	fmt.Println(seqA_arr)
 	fmt.Println(seqB_arr)
-	var left int
-	var top int
-	var diag int
+	var left float64
+	var top float64
+	var diag float64
 	for i:=1; i<=len(seqA_arr);i++{
 		v := seqA_arr[i-1]//Why -1
 		fmt.Print("\n")
@@ -202,7 +202,7 @@ func nmw(seqA Sequence, seqB Sequence, substMat SubstitutionMatrix )Score{
 			w := seqB_arr[j-1]
 			//fmt.Print(v,w)
 
-			diag = mat[i-1][j-1]+s.sm.GetVal(v,w)
+			diag = mat[i-1][j-1]+float64(s.sm.GetVal(v,w))
 			//mat[i][j] = maxOfThree(mat[i-1][j-1]+s.sm.GetVal(v,w),mat[i-1][j]+gapOpenPenalty,mat[i][j-1]+gapOpenPenalty)
 			mat[i][j] = maxOfThree(top,left,diag)
 			if mat[i][j] == top ||  mat[i][j] == left {
@@ -229,8 +229,8 @@ func nmw(seqA Sequence, seqB Sequence, substMat SubstitutionMatrix )Score{
 	return s
 }
 //TODO adjust so that one sequence has to have ended
-func getMax(twod [][]int) int{
-	var max int
+func getMax(twod [][]float64) float64{
+	var max float64
 	max = -1
 
 	for _,v :=range(twod){
@@ -243,7 +243,7 @@ func getMax(twod [][]int) int{
 	return max
 }
 
-func maxOfThree(x int, y int, z int)int{
+func maxOfThree(x float64, y float64, z float64)float64{
 	if x >= y && x >= z{
 		return x
 	}else if y >= x && y >= z{
