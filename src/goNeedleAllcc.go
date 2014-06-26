@@ -6,8 +6,8 @@ import (
 "strings"
 "os"
 "io/ioutil"
+//"time"
 "runtime"
-
 )
 /*
  SUBSTITUTION MATRIX
@@ -286,11 +286,15 @@ func main(){
 	//b = Sequence{">ENSP00000477194","MADTIFGSGNDQWVCPNDRQLALRAKLQTGWSVHTYQTEKQRRKQHLSPAEVEAILQVIQRAERLDVLEQQRIGRLVERLETMRRNVMGNGLSQCLLCGEVLGFLGSSSVFCKDCRKKVCTKCGIEASPGQKRPLWLCKICSEQREVWKRSG"}
 
 	//var scores []Score
-	runtime.GOMAXPROCS(2)
+	runtime.GOMAXPROCS(4)
 	var seen map[string]bool
 	seen = make(map[string]bool)
 
-	channel  := make(chan int, 2)
+	channel_in  := make(chan Task)
+	channel_out := make(chan string)
+
+	go doSth(channel_in) //, channel_out)
+
 	for _,a := range allA{
 		if a.sequence ==""{continue}
 
@@ -300,10 +304,10 @@ func main(){
 			tmppair := a.header+b.header
 			tmppairr := b.header+a.header
 			if ! seen[tmppair]== true && ! seen[tmppairr] == true{
-				go func(){
-				//go doSth(a,b,eblosum62,channel)
-				fmt.Println(prettyPrint(nmw(a,b,eblosum62)))
-				}()
+				channel_in <-  Task{a:a,b:b,sm:eblosum62}
+
+				//fmt.Println(prettyPrint(nmw(a,b,eblosum62)))
+
 			//newScore := nmw(a,b,eblosum62)
 			//fmt.Println(prettyPrint(newScore))
 			//scores = append(scores, newScore)
@@ -313,10 +317,19 @@ func main(){
                 //runtime.GC()
                 }
 		}
+		//time.Sleep(2 * 1e9)
 	}
-	for i := 0; i < 4; i++ {
-       <-channel    // wait for one task to complete
-    }
+	close(channel_in)
+	//go doSth(channel_in,channel_out)
+	res := channel_out
+	close(channel_out)
+	for v := range res{
+		fmt.Println(v)
+	}
+	fmt.Println(res)
+	//for i := 0; i < 4; i++ {
+    //   <-channel    // wait for one task to complete
+    //}
 	//fmt.Println(prettyPrint(s))
 	//nmw(a,b,eblosum62)
 	//s = nmw(a,b,eblosum62)
@@ -359,17 +372,34 @@ func(fr FastaReader) getSequences()[]Sequence{
 	return res
 
 }
-const numCPU = 3
-//var semaphore = make(chan int, numCPU)
-func doSth(a Sequence, b Sequence, sm SubstitutionMatrix, channel chan int){
-	//print("test")
-	//semaphore <- 1
-	//nmw(a,b,sm)
-	newScore :=	nmw(a,b,sm)
-	//fmt.Print(newScore)
-//	channel <- 1
-	fmt.Println(prettyPrint(newScore))
-	channel <- 1
-	//<-semaphore
+type Task struct{
+	a Sequence
+	b Sequence
+	sm SubstitutionMatrix
+}
+
+func doSth(channel_in chan Task){ //, channel_out chan string){
+	//var collect []string
+	//isClosed := false
+
+	for iter := range channel_in {
+		//fmt.Println(iter.a)
+		//var tmp map[string]int
+		//fmt.Println("received ", iter.a.header, iter.b.header)
+		newScore := nmw(iter.a, iter.b, iter.sm)
+		//if newScore.res > 50000{
+		//	//isClosed = true //todo
+		//	fmt.Println("CLOSING\n")
+		//	return
+		<-channel_in
+
+		fmt.Println(prettyPrint(newScore))
+		//channel_out <- prettyPrint(newScore)
+		//<-channel_in
+		//collect = append(collect,prettyPrint(newScore) )
+	}
+	//channel_out <- strings.Join(collect,"\n")
+	//fmt.Println(prettyPrint(newScore))
+	//<-channel_in
 }
 
