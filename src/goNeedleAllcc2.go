@@ -210,7 +210,10 @@ func nmw(seqA Sequence, seqB Sequence, substMat SubstitutionMatrix )Score{
 func getMax(twod [][]float64) float64{
 	var max float64
 	max = -1
-	for _,v :=range(twod){
+//	fmt.Println(len(twod))
+	for i:= len(twod)-2; i<len(twod);i++{
+		v := twod[i]
+//	for _,v :=range(twod){
 		for _,w :=range v{
 			if w > max{
 				max = w
@@ -263,21 +266,35 @@ func main(){
         go func() {
             for t := range tasks {
 				resultStr = append(resultStr,prettyPrint(nmw(t.a,t.b,t.sm)))
+				//resultStr = resultStr +prettyPrint(nmw(t.a,t.b,t.sm))
             }
             wg.Done()
         }()
     }
-
+	var seen map[string]bool
+	seen = make(map[string]bool)
+	var ok bool
+	var tmpkey string
 	for _,a := range allA{
 		if a.sequence ==""{continue}
 		for _,b:=range allB{
 			if b.sequence ==""{continue}
-		tasks <-  Task{a:a,b:b,sm:eblosum62}
+			tmpkey = b.header+a.header
+			ok = seen[tmpkey]
+			if ok{continue}
+			tmpkey = a.header+b.header
+			ok = seen[tmpkey]
+			if ok{continue}
+			seen[a.header+b.header]=true
+			seen[b.header+a.header]=true
+			tasks <-  Task{a:a,b:b,sm:eblosum62}
 
 		}
 	}
+
 	close(tasks)
 	wg.Wait()
+
 	for _,v := range resultStr{
 		fmt.Print(v)
 	}
@@ -335,18 +352,18 @@ type Task struct{
 	sm SubstitutionMatrix
 }
 
-func readResults(resChan chan string){
+/*func readResults(resChan chan string){
 	for iter := range resChan {
 		fmt.Println(iter)
 		<-resChan
 	}
-}
-
+}*/
+/*
 func doSth(channel_in chan Task, resChan chan string){
 	for iter := range channel_in {
 		newScore := nmw(iter.a, iter.b, iter.sm)
 		<-channel_in
 		resChan <- prettyPrint(newScore)
 	}
-}
+}*/
 
