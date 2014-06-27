@@ -6,7 +6,6 @@ import (
 "strings"
 "os"
 "io/ioutil"
-//"time"
 "runtime"
 "sync"
 )
@@ -147,7 +146,6 @@ func prettyPrint(score Score) string{
 NMW
 */
 func nmw(seqA Sequence, seqB Sequence, substMat SubstitutionMatrix )Score{
-	//fmt.Println("SEQ", seqA.header, seqB.header)
 	//twoD array to iterate over
 	m := len(seqA.sequence)+1
 	n := len(seqB.sequence)+1
@@ -182,13 +180,14 @@ func nmw(seqA Sequence, seqB Sequence, substMat SubstitutionMatrix )Score{
 	var diag float64
 
 	for i:=1; i<=len(seqA_arr);i++{
-		v := seqA_arr[i-1]//Why -1
+		v := seqA_arr[i-1]
 		for  j:= 1;j <= len(seqB_arr);j++ {
 			isGap[i][j] = false
 
 			if isGap [i][j - 1] {
 				left = mat[i][j-1]+gapExtendPenalty
 			}else {left = mat[i][j-1]+gapOpenPenalty}
+
 			if isGap [i - 1][j] {
 				top = mat[i-1][j]+gapExtendPenalty
 			}else {top = mat[i-1][j]+gapOpenPenalty}
@@ -196,23 +195,21 @@ func nmw(seqA Sequence, seqB Sequence, substMat SubstitutionMatrix )Score{
 
 			diag = mat[i-1][j-1]+float64(s.sm.GetVal(v, w))
 			mat[i][j] = maxOfThree(top, left, diag)
+
 			if mat[i][j] == top || mat[i][j] == left {
 				isGap[i][j] = true
 			}
 
 		}
 	}
-
-
 	s.setScore(getMax(mat))
-
 	return s
 }
+
 //TODO adjust so that one sequence has to have ended
 func getMax(twod [][]float64) float64{
 	var max float64
 	max = -1
-
 	for _,v :=range(twod){
 		for _,w :=range v{
 			if w > max{
@@ -236,7 +233,6 @@ func maxOfThree(x float64, y float64, z float64)float64{
 MAIN
 */
 
-
 func main(){
 	var fastaFileA string
 	var fastaFileB string
@@ -253,23 +249,14 @@ func main(){
 	eblosum62 := SubstitutionMatrix{name:"EBLOSUM62", data: map[string]int{"_":-1}}
 	eblosum62.setMap("EBLOSUM62")
 
-	//runtime.GOMAXPROCS(4)
-	//var seen map[string]bool
-	//seen = make(map[string]bool)
-
-	//channel_in  := make(chan Task)
-	//channel_out := make(chan string)
-
-	//go doSth(channel_in, channel_out)
-	//go readResults(channel_out)
-	//Producer(allA,allB,eblosum62)
 	var maxCPU int = runtime.NumCPU()
 	var wg sync.WaitGroup
 	tasks :=make(chan Task,10000)
 	var resultStr []string
 
-	//var sem chan int
-
+	if (len(allA)*len(allB)<maxCPU){
+		maxCPU = len(allA)*len(allB)
+	}
 
 	for i := 0; i < maxCPU; i++ {
         wg.Add(1)
@@ -279,44 +266,28 @@ func main(){
             }
             wg.Done()
         }()
-		//wg.Done()
     }
 
-	//var bla <-chan Task = Producer(allA,allB,eblosum62)
-	//Consumer(4,bla)
-	//for s := range bla {
-    //   // fmt.Println("Consumed", s)
-	//	fmt.Println(prettyPrint(nmw(s.a, s.b, s.sm)))
-    //}
 	for _,a := range allA{
 		if a.sequence ==""{continue}
 		for _,b:=range allB{
 			if b.sequence ==""{continue}
-			//tmppair := a.header+b.header
-			//tmppairr := b.header+a.header
-			//if ! seen[tmppair]== true && ! seen[tmppairr] == true{
-				tasks <-  Task{a:a,b:b,sm:eblosum62}
+		tasks <-  Task{a:a,b:b,sm:eblosum62}
 
-			//seen[tmppair]=true
-			//}else{
-                //runtime.Gosched()
-                //runtime.GC()
-            //    }
 		}
 	}
 	close(tasks)
-	//close(channel_in)
-	//close(channel_out)*/
 	wg.Wait()
-	fmt.Println(resultStr)
+	for _,v := range resultStr{
+		fmt.Print(v)
+	}
 }
 
 func Consumer(limit int, inChan <-chan Task){
 	for i := 0; i< limit;i++{
-	for s := range inChan {
-       // fmt.Println("Consumed", s)
-		fmt.Println(prettyPrint(nmw(s.a, s.b, s.sm)))
-    }
+		for s := range inChan {
+			fmt.Println(prettyPrint(nmw(s.a, s.b, s.sm)))
+    	}
 	}
 }
 
@@ -332,7 +303,6 @@ func Producer(allA []Sequence, allB []Sequence, sm SubstitutionMatrix) <-chan Ta
     }()
     return ch
 }
-
 
 
 func check(e error) {
@@ -355,7 +325,6 @@ func(fr FastaReader) getSequences()[]Sequence{
 		tmp = strings.Split(v,"\n")
 		shortHeader := strings.Split(tmp[0]," ")[0]
 		res = append(res, Sequence{header:shortHeader, sequence:strings.Join(tmp[1:],"")})
-
 	}
 	return res
 
@@ -373,8 +342,7 @@ func readResults(resChan chan string){
 	}
 }
 
-func doSth(channel_in chan Task, resChan chan string){ //, channel_out chan string){
-
+func doSth(channel_in chan Task, resChan chan string){
 	for iter := range channel_in {
 		newScore := nmw(iter.a, iter.b, iter.sm)
 		<-channel_in
