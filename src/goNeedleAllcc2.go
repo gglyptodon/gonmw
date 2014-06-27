@@ -209,9 +209,17 @@ func nmw(seqA Sequence, seqB Sequence, substMat SubstitutionMatrix )Score{
 //TODO adjust so that one sequence has to have ended
 func getMax(twod [][]float64) float64{
 	var max float64
+	var n int
+	var m int
+	var shorter int
+	n = len(twod)
+	m = len(twod[n])
+	if n < m{
+		shorter = n
+	}else{shorter = m}
 	max = -1
 //	fmt.Println(len(twod))
-	for i:= len(twod)-2; i<len(twod);i++{
+	for i:= n-2; i<len(n);i++{
 		v := twod[i]
 //	for _,v :=range(twod){
 		for _,w :=range v{
