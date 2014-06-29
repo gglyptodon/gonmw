@@ -203,13 +203,13 @@ func nmw(seqA Sequence, seqB Sequence, substMat SubstitutionMatrix )Score{
 		}
 	}
 	//print matrix
-	for i,_ := range mat{
+	/*for i,_ := range mat{
 		for j,_ :=range mat[i]{
 			fmt.Print(mat[i][j], " ")
 		}
 		fmt.Println("")
 	}
-	fmt.Println("\n\n")
+	fmt.Println("\n\n")*/
 	//
 	s.setScore(getMax3(mat))
 	return s
