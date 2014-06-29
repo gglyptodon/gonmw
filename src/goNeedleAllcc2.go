@@ -202,7 +202,16 @@ func nmw(seqA Sequence, seqB Sequence, substMat SubstitutionMatrix )Score{
 
 		}
 	}
-	s.setScore(getMax(mat))
+	//print matrix
+	for i,_ := range mat{
+		for j,_ :=range mat[i]{
+			fmt.Print(mat[i][j], " ")
+		}
+		fmt.Println("")
+	}
+	fmt.Println("\n\n")
+	//
+	s.setScore(getMax3(mat))
 	return s
 }
 
@@ -210,16 +219,16 @@ func nmw(seqA Sequence, seqB Sequence, substMat SubstitutionMatrix )Score{
 func getMax(twod [][]float64) float64{
 	var max float64
 	var n int
-	var m int
-	var shorter int
+	//var m int
+	//var shorter int
 	n = len(twod)
-	m = len(twod[n])
-	if n < m{
-		shorter = n
-	}else{shorter = m}
+	//m = len(twod[n])
+	//if n < m{
+	//	shorter = n
+	//}else{shorter = m}
 	max = -1
 //	fmt.Println(len(twod))
-	for i:= n-2; i<len(n);i++{
+	for i:= n-2; i<n;i++{
 		v := twod[i]
 //	for _,v :=range(twod){
 		for _,w :=range v{
@@ -231,6 +240,85 @@ func getMax(twod [][]float64) float64{
 	return max
 }
 
+func getMax3(twod [][]float64) float64{
+	var max float64
+	var n int
+	var m int
+	n = len(twod)
+	m = len(twod[n-1])
+	max = -1
+
+	//last col max
+	lastCol := n-1
+	lastRow := twod[lastCol]
+	for _,v :=range lastRow{
+		if max < v{
+			max = v
+		}
+	}
+	//
+	//last row max
+	lastRowIndex := m-1
+	for i:=0;i<n-1;i++{
+		if twod[i][lastRowIndex]>max{
+			max = twod[i][lastRowIndex]
+		}
+	}
+	return(max)
+	//print(m,n)
+	/*if n < m{
+		//first dim shorter
+		max = -1
+		for i:=0;i<m;i++{
+			if twod[n][i]>=max{
+				max = twod[n][i]
+				fmt.Println("new max", n,i,max)
+			}
+		}
+		return(max)
+	}else{ //m shorter
+		max = -1
+		for i:=0;i< n; i++{
+			v := twod[i]
+			if v[m-1]>max{
+				max = v[m-1]
+				fmt.Println("new MAX","i:",i,"v",v,"value",v[m-1])
+			}
+		}
+		return max
+	}*/
+	return max
+}
+func getMax2(twod [][]float64) float64{
+	var max float64
+	var n int
+	var m int
+	n = len(twod)
+	m = len(twod[n-1])
+	//print(m,n)
+	if n < m{
+		//first dim shorter
+		max = -1
+		for i:=0;i<m;i++{
+			if twod[n][i]>=max{
+				max = twod[n][i]
+				fmt.Println("new max", n,i,max)
+			}
+		}
+		return(max)
+	}else{ //m shorter
+		max = -1
+		for i:=0;i< n; i++{
+			v := twod[i]
+			if v[m-1]>max{
+			max = v[m-1]
+				fmt.Println("new MAX","i:",i,"v",v,"value",v[m-1])
+			}
+		}
+		return max
+	}
+	return max
+}
 func maxOfThree(x float64, y float64, z float64)float64{
 	if x >= y && x >= z{
 		return x
