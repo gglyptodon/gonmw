@@ -334,12 +334,17 @@ func nmw(seqA Sequence, seqB Sequence, substMat SubstitutionMatrix )Score{
 	fmt.Println("\n\n")
 	*/
 
-	fmt.Println("##########")
+	fmt.Println("##########\n")
 	//print matrix
 	for i,_ := range mat{
 		//print(i," ")
 		for j,_ :=range mat[i]{
-			fmt.Print(mat[i][j], " ")
+			if mat[i][j] >= 0&& mat[i][j] <10  {
+				fmt.Print(" ")
+			fmt.Print(mat[i][j],"  ")
+			}else{
+				fmt.Print(mat[i][j],"  ")
+			}
 		}
 		fmt.Println("")
 	}
