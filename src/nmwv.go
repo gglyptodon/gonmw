@@ -225,7 +225,7 @@ func nmw(seqA Sequence, seqB Sequence, substMat SubstitutionMatrix )Score{
 	//twoD array to iterate over
 	m := len(seqA.sequence)+1
 	n := len(seqB.sequence)+1
-	fmt.Println("m,n",m,n)
+	//fmt.Println("m,n",m,n)
 	var s Score
 	s = Score{seqA:seqA, seqB:seqB, sm: substMat, res:0}
 	//2d Scoring Matrix
@@ -243,7 +243,7 @@ func nmw(seqA Sequence, seqB Sequence, substMat SubstitutionMatrix )Score{
 
 	//String matrix for path
 	var pathMat = make([][]string,m)
-	// ↑　top, ←　left, ○　diag, × not used
+	// ↑　top, ←　left, 　diag, × not used
 	for i := 0; i < m; i++ {
 		pathMat[i] = make([]string, n)
 	}
@@ -276,7 +276,7 @@ func nmw(seqA Sequence, seqB Sequence, substMat SubstitutionMatrix )Score{
 		v := seqA_arr[i-1]
 		for  j:= 1;j <= len(seqB_arr);j++ {
 			isGap[i][j] = false
-			fmt.Println(seqA_arr[i-1], seqB_arr[j-1])
+			//fmt.Println(seqA_arr[i-1], seqB_arr[j-1])
 			if isGap [i][j - 1] {
 				left = mat[i][j-1]+gapExtendPenalty
 				//OP = false
@@ -296,6 +296,7 @@ func nmw(seqA Sequence, seqB Sequence, substMat SubstitutionMatrix )Score{
 
 			diag = mat[i-1][j-1]+float64(s.sm.GetVal(v, w))
 			mat[i][j] = maxOfThree(top, left, diag)
+
 			if mat[i][j] == top{
 				pathMat[i][j] = "↑"
 			}else if mat[i][j] == left{
@@ -322,7 +323,7 @@ func nmw(seqA Sequence, seqB Sequence, substMat SubstitutionMatrix )Score{
 		fmt.Println("")
 	}*/
 
-	//print matrix
+	/* print matrix
 	for i,_ := range pathMat{
 		print(i," ")
 		for j,_ :=range pathMat[i]{
@@ -331,23 +332,45 @@ func nmw(seqA Sequence, seqB Sequence, substMat SubstitutionMatrix )Score{
 		fmt.Println("")
 	}
 	fmt.Println("\n\n")
+	*/
 
-
+	fmt.Println("##########")
 	//print matrix
 	for i,_ := range mat{
-		print(i," ")
+		//print(i," ")
 		for j,_ :=range mat[i]{
 			fmt.Print(mat[i][j], " ")
 		}
 		fmt.Println("")
 	}
-	fmt.Println("\n\n")
+	//fmt.Println("##########")
 	//
-	s.setScore(getMax3(mat))
+	maxCol,maxRow, maxScore :=getMax3(mat)
+	//fmt.Println("TEST", len(seqA_arr), len(seqB_arr), maxRow, maxCol, "\n\n")
+	if pathMat[maxCol][maxRow] == "←"{
+		 pathMat[maxCol][maxRow] ="⇐"
+	}else if pathMat[maxCol][maxRow] == "↑"{
+	pathMat[maxCol][maxRow] ="⇑"
+	}else{
+	pathMat[maxCol][maxRow] ="⇖"
+	}
+	//pathMat[maxRow][maxCol] = "当"
+	//print matrix
+	for i,_ := range pathMat{
+		//print(i," ")
+		for j,_ :=range pathMat[i]{
+			fmt.Print(pathMat[i][j], " ")
+		}
+		fmt.Println("")
+	}
+	fmt.Println("\n")
+
+	//fmt.Println(maxRow,maxCol,pathMat[maxCol][maxRow]  )
+	s.setScore(maxScore)
 	return s
 }
 
-func getMax3(twod [][]float64) float64{
+func getMax3(twod [][]float64) (int,int,float64){
 	var max float64
 	var n int
 	var m int
@@ -359,7 +382,7 @@ func getMax3(twod [][]float64) float64{
 	//last col max
 	lastCol := n-1
 	lastRow := twod[lastCol]
-	max = maximum(lastRow)
+	lastRowMaxIndex,max := maximum(lastRow)
 	//fmt.Println(lastRow)
 	//fmt.Println("MAX from last Row", max)
 	//last row max
@@ -370,11 +393,12 @@ func getMax3(twod [][]float64) float64{
 	}
 	//fmt.Println("#####")
 	//fmt.Println("lastCOl:" ,lastColArr)
-	lastColMax := maximum(lastColArr)
+	lastColMaxIndex,lastColMax := maximum(lastColArr)
 	//fmt.Println("\n",lastColMax,"lcm")
 	if max < lastColMax {
-		return  lastColMax
-	}else{return max	}
+		return lastColMaxIndex,lastRowIndex, lastColMax
+		//return  lastColMax
+	}else{return lastCol,lastRowMaxIndex ,max	}
 }
 
 func maxOfThree(x float64, y float64, z float64)float64{
@@ -403,8 +427,8 @@ func main(){
 	allB = FastaReader{file:fastaFileB}.getSequences()
 
 
-	eblosum62 := SubstitutionMatrix{name:"EBLOSUM50", data: map[string]int{"_":-1}}
-	eblosum62.setMap("EBLOSUM50")
+	eblosum62 := SubstitutionMatrix{name:"EBLOSUM62", data: map[string]int{"_":-1}}
+	eblosum62.setMap("EBLOSUM62")
 
 	var maxCPU int = runtime.NumCPU()
 	var wg sync.WaitGroup
@@ -449,9 +473,9 @@ func main(){
 	close(tasks)
 	wg.Wait()
 
-	for _,v := range resultStr{
-		fmt.Print(v)
-	}
+	//for _,v := range resultStr{
+	//	fmt.Print(v)
+	//}
 }
 
 func Consumer(limit int, inChan <-chan Task){
@@ -507,10 +531,15 @@ type Task struct{
 }
 
 //return max from slice
-func maximum(slice []float64) float64{
+func maximum(slice []float64) (int,float64, ){
+	maxIndex := -1
 	currentMax := math.Inf(-1)
-	for _,v := range slice{
+	for i,v := range slice{
+		if v > currentMax{
+			maxIndex = i
+		}
 		currentMax = math.Max(currentMax,v)
+
 	}
-	return currentMax
+	return maxIndex, currentMax
 }
