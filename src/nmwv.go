@@ -473,9 +473,9 @@ func main(){
 	close(tasks)
 	wg.Wait()
 
-	//for _,v := range resultStr{
-	//	fmt.Print(v)
-	//}
+	for _,v := range resultStr{
+		fmt.Print(v)
+	}
 }
 
 func Consumer(limit int, inChan <-chan Task){
